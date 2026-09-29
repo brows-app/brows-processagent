@@ -1,0 +1,127 @@
+﻿<Control x:Class="Brows.Windows.Controls.ProcessProxyView"
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:friend="clr-namespace:Brows.Diagnostics;assembly=Brows.ProcessAgent"
+         xmlns:local="clr-namespace:Brows.Windows.Controls">
+  <Control.Resources>
+    <DataTemplate x:Key="_ProcessStreamOutputTemplate">
+      <Grid Background="{Binding Background, RelativeSource={RelativeSource
+                                               AncestorType=local:ProcessProxyView}}">
+        <Grid.Resources>
+          <Style TargetType="TextBlock" x:Key="_LineStyleDefault">
+            <Setter Property="Foreground"
+                    Value="{Binding Foreground, RelativeSource={RelativeSource
+                                                  AncestorType=local:ProcessProxyView}}"/>
+          </Style>
+        </Grid.Resources>
+        <TextBlock x:Name="_StandardOutputLine"
+                   Text="{Binding Line}"
+                   Style="{Binding ProcessStandardOutputLineStyle,
+                                   RelativeSource={RelativeSource
+                                     AncestorType=local:ProcessProxyView},
+                                   TargetNullValue={StaticResource _LineStyleDefault}}"/>
+        <TextBlock x:Name="_StandardErrorLine"
+                   Text="{Binding Line}"
+                   Style="{Binding ProcessStandardErrorLineStyle,
+                                   RelativeSource={RelativeSource
+                                     AncestorType=local:ProcessProxyView},
+                                   TargetNullValue={StaticResource _LineStyleDefault}}"
+                   Visibility="Collapsed"/>
+      </Grid>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding Kind}"
+                     Value="{x:Static friend:ProcessOutputKind.StandardError}">
+          <Setter TargetName="_StandardOutputLine"
+                  Property="Visibility"
+                  Value="Collapsed"/>
+          <Setter TargetName="_StandardErrorLine"
+                  Property="Visibility"
+                  Value="Visible"/>
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type friend:ProcessStreamOutput}">
+      <ContentControl Content="{Binding}"
+                      ContentTemplate="{StaticResource _ProcessStreamOutputTemplate}"/>
+    </DataTemplate>
+    <DataTemplate x:Key="_ProcessLineItemsControlTemplateDefault">
+      <ListView ItemsSource="{Binding}"
+                ItemTemplate="{StaticResource _ProcessStreamOutputTemplate}"
+                BorderThickness="0"
+                Background="{Binding Background,
+                                     RelativeSource={RelativeSource
+                                       AncestorType=local:ProcessProxyView}}"/>
+    </DataTemplate>
+  </Control.Resources>
+  <Control.Template>
+    <ControlTemplate TargetType="{x:Type local:ProcessProxyView}">
+      <Grid Background="{TemplateBinding Background}"
+            DataContext="{Binding ProcessProxy,
+                                  RelativeSource={RelativeSource TemplatedParent}}">
+        <Grid.Resources>
+          <Style TargetType="Border" x:Key="_BorderStyleDefault">
+            <Setter Property="Margin" Value="5 2.5"/>
+          </Style>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+          <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <ContentControl Grid.Row="0"
+                          Content="{Binding Stream.LineItems}"
+                          ContentTemplate="{Binding ProcessLineItemsControlTemplate,
+                                                    RelativeSource={RelativeSource TemplatedParent},
+                                                    TargetNullValue={StaticResource _ProcessLineItemsControlTemplateDefault}}"/>
+          <ContentControl Grid.Row="1"
+                          Content="{Binding Stream.CurrentItem}"
+                          ContentTemplate="{StaticResource _ProcessStreamOutputTemplate}"/>
+        </Grid>
+        <Border Grid.Row="1"
+                Style="{Binding ProcessBorderStyle,
+                                RelativeSource={RelativeSource TemplatedParent},
+                                TargetNullValue={StaticResource _BorderStyleDefault}}">
+          <Grid>
+            <Grid.Style>
+              <Style TargetType="Grid">
+                <Setter Property="Visibility" Value="Visible"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding ProcessProxy, RelativeSource={RelativeSource TemplatedParent}}"
+                               Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </Grid.Style>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0">
+              <Run Text="{Binding FileName, Mode=OneWay}"/>
+              <Run Text="{Binding Arguments, Mode=OneWay}"/>
+            </TextBlock>
+            <TextBlock Grid.Column="1" Text="|"/>
+            <ContentPresenter Grid.Column="2"
+                              Content="{Binding StartTime}"
+                              ContentStringFormat="{Binding ProcessDateTimeFormat,
+                                                            RelativeSource={RelativeSource TemplatedParent}}"/>
+            <TextBlock Grid.Column="3" Text="|"/>
+            <TextBlock Grid.Column="4" Text="{Binding ProcessID}"/>
+            <TextBlock Grid.Column="5" Text="|"/>
+            <TextBlock Grid.Column="6" Text="{Binding ExitCode}"/>
+          </Grid>
+        </Border>
+      </Grid>
+    </ControlTemplate>
+  </Control.Template>
+</Control>

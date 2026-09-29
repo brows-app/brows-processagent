@@ -1,0 +1,8 @@
+﻿<Application x:Class="Brows.ProcessAgentSampleApp"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="ProcessAgentSampleWindow.xaml">
+  <Application.Resources>
+
+  </Application.Resources>
+</Application>

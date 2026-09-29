@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/workflow.yml" />
+  </Folder>
+  <Folder Name="/_/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="spelling.exclusion.dic" />
+  </Folder>
+  <Folder Name="/_/samples/">
+    <File Path="samples/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/_/source/">
+    <File Path="source/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/_/tests/">
+    <File Path="tests/Directory.Build.props" />
+  </Folder>
+  <Project Path="samples/Brows.ProcessAgent.Windows.Sample/Brows.ProcessAgent.Windows.Sample.csproj" Id="7bd82ca6-2118-4c22-8f82-acdb274996cd" />
+  <Project Path="source/Brows.ProcessAgent.Windows/Brows.ProcessAgent.Windows.csproj" Id="fed416f8-f8be-4325-98e8-388a5e837081" />
+  <Project Path="source/Brows.ProcessAgent/Brows.ProcessAgent.csproj" />
+  <Project Path="tests/Brows.ProcessAgent.Tests/Brows.ProcessAgent.Tests.csproj" />
+</Solution>
