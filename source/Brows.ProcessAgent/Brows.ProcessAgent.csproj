@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="README.md" Visible="false" />
     <PackageReference Include="Domore.Notification" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
