@@ -4,10 +4,6 @@
     <Authors>Ken Yourek</Authors>
     <Copyright>Copyright © Ken Yourek 2026</Copyright>
     <Description>Launch processes and asynchronously collect their standard output and standard error as lines.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/brows-app/brows-processagent</PackageProjectUrl>
-    <PackageTags>process;process-management;subprocess;stdout;stderr;async</PackageTags>
     <VersionPrefix>0.1.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <RepositoryType>git</RepositoryType>
