@@ -1,0 +1,308 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:bd="clr-namespace:Brows.Diagnostics;assembly=Brows.ProcessAgent"
+                    xmlns:bwc="clr-namespace:Brows.Windows.Controls"
+                    xmlns:bwd="clr-namespace:Brows.Windows.Data">
+  <ControlTemplate x:Key="_ProcessProxyViewTemplate" TargetType="{x:Type bwc:ProcessProxyView}">
+    <Grid Background="{TemplateBinding Background}"
+          DataContext="{Binding ProcessProxy,
+                                RelativeSource={RelativeSource TemplatedParent}}">
+      <Grid.Resources>
+        <DataTemplate x:Key="_ProcessStreamOutputTemplate">
+          <Grid Background="{Binding Background, RelativeSource={RelativeSource
+                                                   AncestorType=bwc:ProcessProxyView}}">
+            <Grid.Resources>
+              <Style TargetType="TextBlock" x:Key="_LineStyleDefault">
+                <Setter Property="Foreground"
+                        Value="{Binding Foreground, RelativeSource={RelativeSource
+                                                      AncestorType=bwc:ProcessProxyView}}"/>
+              </Style>
+            </Grid.Resources>
+            <TextBlock x:Name="_StandardOutputLine"
+                       Text="{Binding Line}"
+                       Style="{Binding ProcessStandardOutputLineStyle,
+                                       RelativeSource={RelativeSource
+                                         AncestorType=bwc:ProcessProxyView},
+                                       TargetNullValue={StaticResource _LineStyleDefault}}"/>
+            <TextBlock x:Name="_StandardErrorLine"
+                       Text="{Binding Line}"
+                       Style="{Binding ProcessStandardErrorLineStyle,
+                                       RelativeSource={RelativeSource
+                                         AncestorType=bwc:ProcessProxyView},
+                                       TargetNullValue={StaticResource _LineStyleDefault}}"
+                       Visibility="Collapsed"/>
+          </Grid>
+          <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Kind}"
+                         Value="{x:Static bd:ProcessOutputKind.StandardError}">
+              <Setter TargetName="_StandardOutputLine"
+                      Property="Visibility"
+                      Value="Collapsed"/>
+              <Setter TargetName="_StandardErrorLine"
+                      Property="Visibility"
+                      Value="Visible"/>
+            </DataTrigger>
+          </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type bd:ProcessStreamOutput}">
+          <ContentControl Content="{Binding}"
+                          ContentTemplate="{StaticResource _ProcessStreamOutputTemplate}"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="_ProcessLineItemsControlTemplateDefault">
+          <ListView ItemsSource="{Binding}"
+                    ItemTemplate="{StaticResource _ProcessStreamOutputTemplate}"
+                    BorderThickness="0"
+                    Background="{Binding Background,
+                                         RelativeSource={RelativeSource
+                                           AncestorType=bwc:ProcessProxyView}}"/>
+        </DataTemplate>
+
+        <Style TargetType="Border" x:Key="_BorderStyleDefault">
+          <Setter Property="Padding" Value="5 2.5"/>
+        </Style>
+
+        <!--
+          Status templates. Each template's data context is the IProcessProxy. Values that can change
+          between null and non-null are overlaid with their placeholders in a single-cell Grid. The
+          inactive elements are Hidden rather than Collapsed so they keep contributing to the cell's
+          width, which keeps the status items from shifting as the process starts and exits.
+        -->
+        <Style TargetType="TextBlock" x:Key="_StatusLabelStyle">
+          <Setter Property="Margin" Value="0 0 4 0"/>
+          <Setter Property="Opacity" Value="0.7"/>
+        </Style>
+
+        <DataTemplate x:Key="_ProcessCommandTemplateDefault">
+          <TextBlock TextTrimming="CharacterEllipsis"
+                     VerticalAlignment="Center">
+            <Run Text="{Binding FileName, Mode=OneWay}"/>
+            <Run Text="{Binding Arguments, Mode=OneWay}"/>
+            <TextBlock.ToolTip>
+              <StackPanel>
+                <TextBlock>
+                  <Run Text="{Binding FileName, Mode=OneWay}"/>
+                  <Run Text="{Binding Arguments, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock x:Name="_WorkingDirectory"
+                           Text="{Binding WorkingDirectory, Mode=OneWay}"
+                           Opacity="0.7"/>
+              </StackPanel>
+            </TextBlock.ToolTip>
+          </TextBlock>
+          <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding WorkingDirectory}" Value="">
+              <Setter TargetName="_WorkingDirectory" Property="Visibility" Value="Collapsed"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding WorkingDirectory}" Value="{x:Null}">
+              <Setter TargetName="_WorkingDirectory" Property="Visibility" Value="Collapsed"/>
+            </DataTrigger>
+          </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <DataTemplate x:Key="_ProcessStatusSeparatorTemplateDefault">
+          <Border Width="1"
+                  Margin="8 2"
+                  Opacity="0.4"
+                  Background="{Binding (TextElement.Foreground),
+                                       RelativeSource={RelativeSource Self}}"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="_ProcessStartTimeTemplateDefault">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Started" Style="{StaticResource _StatusLabelStyle}"/>
+            <Grid>
+              <Grid.Resources>
+                <bwd:ProcessDateTimeConverter x:Key="_ProcessDateTimeConverter"/>
+                <bwd:ProcessDateTimeConverter x:Key="_ProcessDateTimeSampleConverter" Sample="True"/>
+              </Grid.Resources>
+              <!-- The date-time and its format are converted together, so the format applies on first display. -->
+              <TextBlock x:Name="_Value" HorizontalAlignment="Right">
+                <TextBlock.Text>
+                  <MultiBinding Converter="{StaticResource _ProcessDateTimeConverter}">
+                    <Binding Path="StartTime"/>
+                    <Binding Path="ProcessDateTimeFormat"
+                             RelativeSource="{RelativeSource AncestorType=bwc:ProcessProxyView}"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+              <!-- Always hidden: reserves the width of a formatted date-time before the start time is known. -->
+              <TextBlock x:Name="_Reserve" Visibility="Hidden">
+                <TextBlock.Text>
+                  <MultiBinding Converter="{StaticResource _ProcessDateTimeSampleConverter}">
+                    <Binding Path="StartTime"/>
+                    <Binding Path="ProcessDateTimeFormat"
+                             RelativeSource="{RelativeSource AncestorType=bwc:ProcessProxyView}"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+              <TextBlock x:Name="_Placeholder" Text="—" HorizontalAlignment="Right" Visibility="Hidden"/>
+            </Grid>
+          </StackPanel>
+          <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding StartTime}" Value="{x:Null}">
+              <Setter TargetName="_Value" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_Placeholder" Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+          </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <DataTemplate x:Key="_ProcessIDTemplateDefault">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="PID" Style="{StaticResource _StatusLabelStyle}"/>
+            <Grid>
+              <!-- Always hidden: reserves room for a seven-digit process ID before the ID is known. -->
+              <TextBlock x:Name="_Reserve" Text="0000000" Visibility="Hidden"/>
+              <TextBlock x:Name="_Value" Text="{Binding ProcessID}" HorizontalAlignment="Right"/>
+              <TextBlock x:Name="_Placeholder" Text="—" HorizontalAlignment="Right" Visibility="Hidden"/>
+            </Grid>
+          </StackPanel>
+          <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding ProcessID}" Value="{x:Null}">
+              <Setter TargetName="_Value" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_Placeholder" Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+          </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <DataTemplate x:Key="_ProcessExitCodeTemplateDefault">
+          <Grid VerticalAlignment="Center">
+            <StackPanel x:Name="_Exited" Orientation="Horizontal">
+              <TextBlock Text="Exit" Style="{StaticResource _StatusLabelStyle}"/>
+              <TextBlock Text="{Binding ExitCode}"/>
+            </StackPanel>
+            <TextBlock x:Name="_NotStarted" Text="Not started" Visibility="Hidden"/>
+            <TextBlock x:Name="_Starting" Text="Starting" Visibility="Hidden"/>
+            <TextBlock x:Name="_Running" Text="Running" Visibility="Hidden"/>
+            <TextBlock x:Name="_Stopped" Text="Stopped" Visibility="Hidden"/>
+          </Grid>
+          <DataTemplate.Triggers>
+            <!--
+              A known exit code always wins: the proxy publishes ExitCode before it clears Running.
+              Without one, the state comes from the flags below. Later triggers take precedence:
+              not started, then stopped (started but neither running nor exited, such as a process
+              that was canceled), then starting, then running.
+            -->
+            <DataTrigger Binding="{Binding ExitCode}" Value="{x:Null}">
+              <Setter TargetName="_Exited" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_NotStarted" Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+            <MultiDataTrigger>
+              <MultiDataTrigger.Conditions>
+                <Condition Binding="{Binding ExitCode}" Value="{x:Null}"/>
+                <Condition Binding="{Binding Started}" Value="True"/>
+              </MultiDataTrigger.Conditions>
+              <Setter TargetName="_NotStarted" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_Stopped" Property="Visibility" Value="Visible"/>
+            </MultiDataTrigger>
+            <MultiDataTrigger>
+              <MultiDataTrigger.Conditions>
+                <Condition Binding="{Binding ExitCode}" Value="{x:Null}"/>
+                <Condition Binding="{Binding Starting}" Value="True"/>
+              </MultiDataTrigger.Conditions>
+              <Setter TargetName="_NotStarted" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_Stopped" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_Starting" Property="Visibility" Value="Visible"/>
+            </MultiDataTrigger>
+            <MultiDataTrigger>
+              <MultiDataTrigger.Conditions>
+                <Condition Binding="{Binding ExitCode}" Value="{x:Null}"/>
+                <Condition Binding="{Binding Running}" Value="True"/>
+              </MultiDataTrigger.Conditions>
+              <Setter TargetName="_NotStarted" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_Stopped" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_Starting" Property="Visibility" Value="Hidden"/>
+              <Setter TargetName="_Running" Property="Visibility" Value="Visible"/>
+            </MultiDataTrigger>
+          </DataTemplate.Triggers>
+        </DataTemplate>
+      </Grid.Resources>
+      <Grid.RowDefinitions>
+        <RowDefinition/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <Grid Grid.Row="0">
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <ContentControl Grid.Row="0"
+                        Content="{Binding Stream.LineItems}"
+                        ContentTemplate="{Binding ProcessLineItemsControlTemplate,
+                                                  RelativeSource={RelativeSource TemplatedParent},
+                                                  TargetNullValue={StaticResource _ProcessLineItemsControlTemplateDefault}}"/>
+        <ContentControl Grid.Row="1"
+                        Content="{Binding Stream.CurrentItem}"
+                        ContentTemplate="{StaticResource _ProcessStreamOutputTemplate}"/>
+      </Grid>
+      <Border Grid.Row="1"
+              Style="{Binding ProcessBorderStyle,
+                              RelativeSource={RelativeSource TemplatedParent},
+                              TargetNullValue={StaticResource _BorderStyleDefault}}">
+        <Grid>
+          <Grid.Style>
+            <Style TargetType="Grid">
+              <Setter Property="Visibility" Value="Visible"/>
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding ProcessProxy, RelativeSource={RelativeSource TemplatedParent}}"
+                             Value="{x:Null}">
+                  <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Grid.Style>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <ContentPresenter Grid.Column="0"
+                            Content="{Binding}"
+                            ContentTemplate="{Binding ProcessCommandTemplate,
+                                                      RelativeSource={RelativeSource TemplatedParent},
+                                                      TargetNullValue={StaticResource _ProcessCommandTemplateDefault}}"/>
+          <ContentPresenter Grid.Column="1"
+                            Content="{Binding}"
+                            ContentTemplate="{Binding ProcessStatusSeparatorTemplate,
+                                                      RelativeSource={RelativeSource TemplatedParent},
+                                                      TargetNullValue={StaticResource _ProcessStatusSeparatorTemplateDefault}}"/>
+          <ContentPresenter Grid.Column="2"
+                            Content="{Binding}"
+                            ContentTemplate="{Binding ProcessStartTimeTemplate,
+                                                      RelativeSource={RelativeSource TemplatedParent},
+                                                      TargetNullValue={StaticResource _ProcessStartTimeTemplateDefault}}"/>
+          <ContentPresenter Grid.Column="3"
+                            Content="{Binding}"
+                            ContentTemplate="{Binding ProcessStatusSeparatorTemplate,
+                                                      RelativeSource={RelativeSource TemplatedParent},
+                                                      TargetNullValue={StaticResource _ProcessStatusSeparatorTemplateDefault}}"/>
+          <ContentPresenter Grid.Column="4"
+                            Content="{Binding}"
+                            ContentTemplate="{Binding ProcessIDTemplate,
+                                                      RelativeSource={RelativeSource TemplatedParent},
+                                                      TargetNullValue={StaticResource _ProcessIDTemplateDefault}}"/>
+          <ContentPresenter Grid.Column="5"
+                            Content="{Binding}"
+                            ContentTemplate="{Binding ProcessStatusSeparatorTemplate,
+                                                      RelativeSource={RelativeSource TemplatedParent},
+                                                      TargetNullValue={StaticResource _ProcessStatusSeparatorTemplateDefault}}"/>
+          <ContentPresenter Grid.Column="6"
+                            Content="{Binding}"
+                            ContentTemplate="{Binding ProcessExitCodeTemplate,
+                                                      RelativeSource={RelativeSource TemplatedParent},
+                                                      TargetNullValue={StaticResource _ProcessExitCodeTemplateDefault}}"/>
+        </Grid>
+      </Border>
+    </Grid>
+  </ControlTemplate>
+  <Style TargetType="{x:Type bwc:ProcessProxyView}" x:Key="ProcessProxyViewStyle">
+  </Style>
+  <Style TargetType="{x:Type bwc:ProcessProxyView}" BasedOn="{StaticResource ProcessProxyViewStyle}">
+    <Setter Property="Template" Value="{StaticResource _ProcessProxyViewTemplate}"/>
+  </Style>
+</ResourceDictionary>

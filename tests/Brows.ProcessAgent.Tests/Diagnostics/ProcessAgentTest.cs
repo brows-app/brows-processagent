@@ -65,9 +65,9 @@ internal sealed class ProcessAgentTest {
                     PathsEqual(standardOutput[1], workingDirectory),
                     Is.True,
                     $"Expected working directory '{workingDirectory}', got '{standardOutput[1]}'.");
-                Assert.That(standardError, Is.EqualTo(new[] {
+                Assert.That(standardError, Is.EqualTo([
                     "error-line"
-                }));
+                ]));
             }
         }
         finally {
@@ -100,12 +100,12 @@ internal sealed class ProcessAgentTest {
             var standardOutput = Lines(proxy, ProcessOutputKind.StandardOutput);
             var standardError = Lines(proxy, ProcessOutputKind.StandardError);
             using (Assert.EnterMultipleScope()) {
-                Assert.That(standardOutput, Is.EqualTo(new[] {
+                Assert.That(standardOutput, Is.EqualTo([
                     "standard-ou!"
-                }));
-                Assert.That(standardError, Is.EqualTo(new[] {
+                ]));
+                Assert.That(standardError, Is.EqualTo([
                     "standard-erro!"
-                }));
+                ]));
             }
         }
         finally {
@@ -139,12 +139,12 @@ internal sealed class ProcessAgentTest {
 
             using (Assert.EnterMultipleScope()) {
                 Assert.That(((ProcessProxy)proxy).Stream.BufferSize, Is.EqualTo(expectedBufferSize));
-                Assert.That(Lines(proxy, ProcessOutputKind.StandardOutput), Is.EqualTo(new[] {
+                Assert.That(Lines(proxy, ProcessOutputKind.StandardOutput), Is.EqualTo([
                     "standard-output"
-                }));
-                Assert.That(Lines(proxy, ProcessOutputKind.StandardError), Is.EqualTo(new[] {
+                ]));
+                Assert.That(Lines(proxy, ProcessOutputKind.StandardError), Is.EqualTo([
                     "standard-error"
-                }));
+                ]));
             }
         }
         finally {
@@ -176,7 +176,7 @@ internal sealed class ProcessAgentTest {
     }
 
     [Test]
-    public void Start_PreCanceledTokenDoesNotInvokeProxyCreated() {
+    public async Task Start_PreCanceledTokenDoesNotInvokeProxyCreated() {
         var callbackInvoked = false;
         var agent = new ProcessAgent {
             FileName = "unused",
@@ -184,7 +184,7 @@ internal sealed class ProcessAgentTest {
         };
         var start = agent.Start(new CancellationToken(true));
 
-        Assert.CatchAsync<OperationCanceledException>(async () => await start);
+        await Assert.CatchAsync<OperationCanceledException>(async () => await start);
         Assert.That(callbackInvoked, Is.False);
     }
 
@@ -231,9 +231,9 @@ internal sealed class ProcessAgentTest {
 
             var lines = Lines(proxy, ProcessOutputKind.StandardOutput);
             using (Assert.EnterMultipleScope()) {
-                Assert.That(lines, Is.EqualTo(new[] {
+                Assert.That(lines, Is.EqualTo([
                     "context-line"
-                }));
+                ]));
                 Assert.That(
                     Interlocked.CompareExchange(ref notificationThread, 0, 0) == synchronizationContext.OwnerThread,
                     Is.EqualTo(expectedOnOwnerThread));
@@ -276,7 +276,7 @@ internal sealed class ProcessAgentTest {
 
             var completed = await Task.WhenAny(start, Task.Delay(TimeSpan.FromSeconds(10)));
             Assert.That(completed, Is.SameAs(start));
-            Assert.CatchAsync<OperationCanceledException>(async () => await start);
+            await Assert.CatchAsync<OperationCanceledException>(async () => await start);
             using (Assert.EnterMultipleScope()) {
                 Assert.That(HasExited(processId.Value), Is.True);
             }
@@ -307,7 +307,7 @@ internal sealed class ProcessAgentTest {
 
         Assert.That(proxy, Is.Not.Null);
         Assert.That(proxy.Stream, Is.Null);
-        Assert.ThrowsAsync<Win32Exception>(async () => await start);
+        await Assert.ThrowsAsync<Win32Exception>(async () => await start);
         Assert.That(errors, Is.Empty);
     }
 
@@ -347,9 +347,9 @@ internal sealed class ProcessAgentTest {
                 Assert.That(fixer.StartInfo.Arguments, Is.EqualTo(fixedArguments));
                 Assert.That(fixer.Error, Is.InstanceOf<Win32Exception>());
                 Assert.That(fixer.Token, Is.EqualTo(cancellation.Token));
-                Assert.That(Lines(proxy, ProcessOutputKind.StandardOutput), Is.EqualTo(new[] {
+                Assert.That(Lines(proxy, ProcessOutputKind.StandardOutput), Is.EqualTo([
                     "fixed-output"
-                }));
+                ]));
             }
         }
         finally {
@@ -358,7 +358,7 @@ internal sealed class ProcessAgentTest {
     }
 
     [Test]
-    public void Start_PropagatesLaunchFailureWhenFixerDeclines() {
+    public async Task Start_PropagatesLaunchFailureWhenFixerDeclines() {
         var workingDirectory = CreateWorkingDirectory();
         var missingFile = Path.Combine(workingDirectory, "missing-executable");
         var agent = new ProcessAgent {
@@ -371,7 +371,7 @@ internal sealed class ProcessAgentTest {
         try {
             var start = agent.Start(CancellationToken.None);
 
-            Assert.ThrowsAsync<Win32Exception>(async () => await start);
+            await Assert.ThrowsAsync<Win32Exception>(async () => await start);
             using (Assert.EnterMultipleScope()) {
                 Assert.That(fixer.CallCount, Is.EqualTo(1));
                 Assert.That(fixer.StartInfo.FileName, Is.EqualTo(missingFile));
@@ -406,7 +406,7 @@ internal sealed class ProcessAgentTest {
             });
 
             var start = agent.Start(cancellation.Token);
-            Assert.CatchAsync<OperationCanceledException>(async () => await start);
+            await Assert.CatchAsync<OperationCanceledException>(async () => await start);
 
             Assert.That(File.Exists(markerPath), Is.False);
         }
@@ -488,10 +488,9 @@ internal sealed class ProcessAgentTest {
     }
 
     private static string[] Lines(IProcessProxy proxy, ProcessOutputKind kind) {
-        return proxy.Stream.LineItems
+        return [.. proxy.Stream.LineItems
             .Where(item => item.Kind == kind)
-            .Select(item => item.Line)
-            .ToArray();
+            .Select(item => item.Line)];
     }
 
     private static bool PathsEqual(string left, string right) {

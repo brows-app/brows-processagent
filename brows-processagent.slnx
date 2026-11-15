@@ -26,4 +26,5 @@
   <Project Path="source/Brows.ProcessAgent.Windows/Brows.ProcessAgent.Windows.csproj" Id="fed416f8-f8be-4325-98e8-388a5e837081" />
   <Project Path="source/Brows.ProcessAgent/Brows.ProcessAgent.csproj" />
   <Project Path="tests/Brows.ProcessAgent.Tests/Brows.ProcessAgent.Tests.csproj" />
+  <Project Path="tests/Brows.ProcessAgent.Windows.Tests/Brows.ProcessAgent.Windows.Tests.csproj" />
 </Solution>

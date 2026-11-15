@@ -88,12 +88,12 @@ internal sealed class WindowsCmdFixerTest {
     }
 
     [Test]
-    public void Fix_ThrowsWhenCancellationIsRequested() {
+    public async Task Fix_ThrowsWhenCancellationIsRequested() {
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         var startInfo = new ProcessStartInfo("missing-tool.exe", "--flag");
 
-        Assert.ThrowsAsync<OperationCanceledException>(
+        await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await Fixer.Fix(startInfo, new Win32Exception(2), cancellation.Token));
 
         using (Assert.EnterMultipleScope()) {

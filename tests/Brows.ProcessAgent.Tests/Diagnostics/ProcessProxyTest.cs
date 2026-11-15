@@ -51,15 +51,15 @@ internal sealed class ProcessProxyTest {
                     proxy.ExitCode,
                     Is.EqualTo(0),
                     string.Join(Environment.NewLine, error));
-                Assert.That(output, Is.EqualTo(new[] {
+                Assert.That(output, Is.EqualTo([
                     "stdout-one",
                     string.Empty,
                     longLine,
                     "stdout-tail"
-                }));
-                Assert.That(error, Is.EqualTo(new[] {
+                ]));
+                Assert.That(error, Is.EqualTo([
                     "stderr-tail"
-                }));
+                ]));
             }
         }
         finally {
@@ -90,7 +90,7 @@ internal sealed class ProcessProxyTest {
 
             var completed = await Task.WhenAny(start, Task.Delay(TimeSpan.FromSeconds(10)));
             Assert.That(completed, Is.SameAs(start));
-            Assert.CatchAsync<OperationCanceledException>(async () => await start);
+            await Assert.CatchAsync<OperationCanceledException>(async () => await start);
 
             using (Assert.EnterMultipleScope()) {
                 Assert.That(proxy.Running, Is.False);
@@ -174,9 +174,9 @@ internal sealed class ProcessProxyTest {
             var completed = await Task.WhenAny(start, Task.Delay(TimeSpan.FromSeconds(10)));
             Assert.That(completed, Is.SameAs(start));
             await start;
-            Assert.That(Lines(proxy, ProcessOutputKind.StandardOutput), Is.EqualTo(new[] {
+            Assert.That(Lines(proxy, ProcessOutputKind.StandardOutput), Is.EqualTo([
                 "after-input"
-            }));
+            ]));
         }
         finally {
             await proxy.KillAsync();
@@ -220,7 +220,7 @@ internal sealed class ProcessProxyTest {
 
             var completed = await Task.WhenAny(start, Task.Delay(TimeSpan.FromSeconds(10)));
             Assert.That(completed, Is.SameAs(start));
-            Assert.CatchAsync<OperationCanceledException>(async () => await start);
+            await Assert.CatchAsync<OperationCanceledException>(async () => await start);
             Assert.That(proxy.Running, Is.False);
         }
         finally {
@@ -260,7 +260,7 @@ internal sealed class ProcessProxyTest {
         try {
             var proxy = CreateProxy(scriptPath);
             await proxy.Start();
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await proxy.Start());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await proxy.Start());
         }
         finally {
             File.Delete(scriptPath);
@@ -268,9 +268,9 @@ internal sealed class ProcessProxyTest {
     }
 
     [Test]
-    public void Start_PreCanceledTokenDoesNotStartProcess() {
+    public async Task Start_PreCanceledTokenDoesNotStartProcess() {
         var proxy = CreateProxy("unused");
-        Assert.CatchAsync<OperationCanceledException>(
+        await Assert.CatchAsync<OperationCanceledException>(
             async () => await proxy.Start(cancellationToken: new CancellationToken(true)));
         using (Assert.EnterMultipleScope()) {
             Assert.That(proxy.Started, Is.False);
@@ -298,18 +298,18 @@ internal sealed class ProcessProxyTest {
     }
 
     [Test]
-    public void Start_FailedLaunchDoesNotPreventRetry() {
+    public async Task Start_FailedLaunchDoesNotPreventRetry() {
         var missingFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
         var proxy = new ProcessProxy(missingFile);
 
-        Assert.ThrowsAsync<Win32Exception>(async () => await proxy.Start());
+        await Assert.ThrowsAsync<Win32Exception>(async () => await proxy.Start());
         using (Assert.EnterMultipleScope()) {
             Assert.That(proxy.Started, Is.False);
             Assert.That(proxy.Running, Is.False);
             Assert.That(proxy.StartTime, Is.Null);
         }
 
-        Assert.ThrowsAsync<Win32Exception>(async () => await proxy.Start());
+        await Assert.ThrowsAsync<Win32Exception>(async () => await proxy.Start());
     }
 
     private static ProcessProxy CreateProxy(string scriptPath) {
@@ -323,11 +323,10 @@ internal sealed class ProcessProxyTest {
     }
 
     private static string[] Lines(ProcessProxy proxy, ProcessOutputKind kind) {
-        return ((IProcessStream)proxy.Stream).LineItems
+        return [.. ((IProcessStream)proxy.Stream).LineItems
             .OfType<ProcessStreamOutput>()
             .Where(item => item.Kind == kind)
-            .Select(item => item.Line)
-            .ToArray();
+            .Select(item => item.Line)];
     }
 
     private static string WriteScript(string[] windows, string[] unix) {
